@@ -80,6 +80,32 @@ def _find_photo():
     return None
 
 
+@st.cache_data(show_spinner=False)
+def _find_asset(stem):
+    try:
+        base = Path(__file__).resolve().parent
+    except Exception:
+        base = Path.cwd()
+    for d in [base, base / 'static', base / 'assets', base / 'images', Path.cwd(), Path.cwd() / 'static']:
+        if d.is_dir():
+            for f in sorted(d.iterdir()):
+                if f.stem.lower() == stem and f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.webp'):
+                    mime = {'.jpg': 'jpeg', '.jpeg': 'jpeg', '.png': 'png', '.webp': 'webp'}[f.suffix.lower()]
+                    return f'data:image/{mime};base64,' + base64.b64encode(f.read_bytes()).decode()
+    return None
+
+
+def banner_uri():
+    p = _find_asset('download')
+    if p:
+        return p
+    svg = ("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'><defs><linearGradient id='a' x1='0' y1='0' x2='1' y2='1'>"
+           "<stop offset='0' stop-color='#2f66c0'/><stop offset='1' stop-color='#9cc9f0'/></linearGradient></defs><rect width='600' height='400' fill='url(#a)'/>"
+           "<g fill='white' fill-opacity='.9'><rect x='110' y='230' width='60' height='110' rx='10'/><rect x='200' y='180' width='60' height='160' rx='10'/>"
+           "<rect x='290' y='130' width='60' height='210' rx='10'/><rect x='380' y='80' width='60' height='260' rx='10'/></g></svg>")
+    return 'data:image/svg+xml;base64,' + base64.b64encode(svg.encode()).decode()
+
+
 def photo_uri():
     if S.get('photo_bytes'):
         return f"data:image/{S.get('photo_mime', 'jpeg')};base64," + base64.b64encode(S['photo_bytes']).decode()
@@ -1006,6 +1032,63 @@ h3 { color:#1b2a4a; font-weight:800 !important; }
 .hero .tag { backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.3); }
 .stApp [data-testid="stMain"] hr { border-color:rgba(61,116,201,.15); }
 ::-webkit-scrollbar { width:9px; height:9px; } ::-webkit-scrollbar-thumb { background:#b4d0f5; border-radius:8px; }
+
+/* ===== UPLOADER SIDEBAR (lebih kentara) ===== */
+.up-title { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:800; color:#fff; letter-spacing:.3px; margin:6px 0 6px;
+  background:linear-gradient(90deg,rgba(124,184,236,.35),rgba(255,255,255,.05)); border-left:4px solid #8fe0f0; border-radius:10px; padding:8px 12px; }
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] label p { font-size:13px !important; font-weight:800 !important; color:#fff !important; }
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] section { border:2px dashed #8fe0f0 !important; background:rgba(143,224,240,.12) !important; border-radius:16px;
+  animation:pulse 2.6s infinite; }
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] section * { color:#e3f0ff !important; }
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] section button { background:#fff !important; color:#1f4f9e !important; font-weight:800; border-radius:10px; }
+section[data-testid="stSidebar"] [data-testid="stFileUploaderFile"] { background:#fff; border-radius:12px; padding:4px 8px; }
+section[data-testid="stSidebar"] [data-testid="stFileUploaderFile"] * { color:#1b2a4a !important; font-weight:700; }
+section[data-testid="stSidebar"] [data-testid="stFileUploaderFile"] svg { color:#3d74c9 !important; }
+/* ===== BERANDA ===== */
+.land { display:grid; grid-template-columns:1.1fr 1fr; gap:26px; align-items:center; background:linear-gradient(125deg,#14305f 0%,#2a5db0 40%,#4f8fdb 75%,#a5cdf2 115%);
+  background-size:260% 260%; animation: grad 16s ease infinite, up .9s ease both; border-radius:32px; padding:38px; position:relative; overflow:hidden;
+  box-shadow:0 40px 80px -34px rgba(31,79,158,.9); margin-bottom:18px; }
+.land::before { content:''; position:absolute; width:420px; height:420px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,.22),transparent 70%); top:-160px; left:-120px; }
+.land::after { content:''; position:absolute; width:340px; height:340px; border-radius:50%; background:radial-gradient(circle,rgba(123,140,240,.5),transparent 70%); bottom:-150px; right:-60px; }
+.land > div { position:relative; z-index:1; }
+.stApp .land, .stApp .land * { color:#fff !important; }
+.land .tag { display:inline-block; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); padding:7px 15px; border-radius:20px; font-size:12px; font-weight:700; margin-bottom:16px; backdrop-filter:blur(8px); }
+.land h1 { font-size:40px; line-height:1.1; font-weight:800; letter-spacing:-1px; margin:0 0 14px; padding:0; }
+.stApp .land h1 .grad { color:#bfe3ff !important; }
+.land p { font-size:15px; opacity:.93; margin:0 0 18px; max-width:520px; }
+.land .pills { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+.land .pills span { background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.25); padding:6px 13px; border-radius:14px; font-size:11px; font-weight:700; transition:.25s; }
+.land .pills span:hover { background:rgba(255,255,255,.3); transform:translateY(-3px); }
+.land .who { display:inline-flex; align-items:center; gap:12px; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.28); border-radius:18px; padding:8px 18px 8px 8px; backdrop-filter:blur(8px); }
+.land .who img { width:42px; height:42px; border-radius:13px; object-fit:cover; border:2px solid rgba(255,255,255,.7); }
+.land .who b { font-size:13px; display:block; line-height:1.2; } .land .who span { font-size:11px; opacity:.85; }
+.land .frame { position:relative; border-radius:30px; padding:10px; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4); backdrop-filter:blur(10px);
+  box-shadow:0 30px 60px -24px rgba(10,30,70,.8); animation:bob 6s ease-in-out infinite; }
+.land .frame img { width:100%; height:300px; object-fit:cover; border-radius:22px; display:block; }
+.land .float { position:absolute; background:#fff; border-radius:16px; padding:8px 14px; font-size:12px; font-weight:800; box-shadow:0 14px 30px -12px rgba(10,30,70,.6); animation:bob 5s ease-in-out infinite; }
+.stApp .land .float { color:#1f4f9e !important; }
+.land .f1 { top:-14px; left:-14px; } .land .f2 { bottom:30px; right:-16px; animation-delay:-2s; } .land .f3 { bottom:-14px; left:30px; animation-delay:-3.5s; }
+.stepsrow { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:10px 0 18px; }
+.stepc { background:#fff; border:1px solid rgba(61,116,201,.16); border-radius:22px; padding:18px; position:relative; overflow:hidden; transition:.3s; animation: up .8s ease both;
+  box-shadow:0 14px 34px -22px rgba(20,40,90,.5); }
+.stepc:hover { transform:translateY(-6px); box-shadow:0 26px 50px -24px rgba(61,116,201,.6); }
+.stepc .no { position:absolute; right:14px; top:2px; font-size:60px; font-weight:800; color:rgba(61,116,201,.09) !important; }
+.stepc .ic { width:46px; height:46px; border-radius:15px; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:10px; }
+.stepc b { font-size:14px; color:#1b2a4a !important; display:block; margin-bottom:4px; } .stepc span { font-size:12px; color:#44587a !important; }
+.feat { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:12px; }
+.fc { background:linear-gradient(145deg,#fff,#f3f7fd); border:1px solid rgba(61,116,201,.16); border-radius:20px; padding:16px; transition:.3s; animation: up .9s ease both; }
+.fc:hover { transform:translateY(-5px) rotate(-.4deg); box-shadow:0 22px 44px -22px rgba(61,116,201,.55); }
+.fc .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.fc .e { font-size:24px; } .fc .w { font-size:11px; font-weight:800; background:#e3ecfb; color:#27508f !important; padding:3px 10px; border-radius:12px; }
+.fc b { font-size:13px; color:#1b2a4a !important; display:block; } .fc span { font-size:11.5px; color:#44587a !important; }
+.drop-h { text-align:center; margin:6px 0 8px; } .drop-h b { font-size:20px; color:#1b2a4a !important; font-weight:800; display:block; } .drop-h span { font-size:12px; color:#7083a3 !important; }
+[data-testid="stMain"] [data-testid="stFileUploader"] section { border:2.5px dashed #3d74c9 !important; border-radius:24px; padding:26px;
+  background:linear-gradient(135deg,rgba(61,116,201,.1),rgba(123,140,240,.1)) !important; transition:.3s; }
+[data-testid="stMain"] [data-testid="stFileUploader"] section:hover { transform:scale(1.01); border-color:#7b8cf0 !important; }
+[data-testid="stMain"] [data-testid="stFileUploader"] section * { color:#27508f !important; font-weight:600; }
+[data-testid="stMain"] [data-testid="stFileUploader"] section button { background:linear-gradient(120deg,#1f4f9e,#3d74c9,#5aa9e6) !important; color:#fff !important; border:0; border-radius:12px; font-weight:800; }
+[data-testid="stMain"] [data-testid="stFileUploader"] section button * { color:#fff !important; }
+@media (max-width:900px) { .land, .stepsrow, .feat { grid-template-columns:1fr; } .land h1 { font-size:30px; } }
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
@@ -1123,9 +1206,30 @@ QUESTIONS = [
 
 
 def page_upload_hint():
-    st.markdown('<div class="lg-card"><div style="font-size:54px">🧺</div><h2>Integrasi Data Mining &amp; BI</h2>'
-                '<p style="color:#44587a;font-size:14px">Unggah file Excel UTS lewat panel kiri. Data dibaca dari sheet '
-                '<b>Data_Raw</b>; sheet lain di file yang sama diabaikan.</p></div>', unsafe_allow_html=True)
+    st.markdown(f"""<div class="land"><div>
+<span class="tag">✨ UTS · Data Mining &amp; Business Intelligence</span>
+<h1>Ubah data transaksi menjadi <span class="grad">keputusan bisnis</span></h1>
+<p>Temukan produk yang sering dibeli bersama, kenali pelanggan paling bernilai, dan dapatkan rekomendasi tindakan berbasis data, dalam satu alur yang rapi.</p>
+<div class="pills"><span>🔍 EDA</span><span>🧹 Preprocessing</span><span>🔗 Apriori</span><span>🎯 K-Means</span><span>📊 Dashboard</span><span>💡 Rekomendasi</span></div>
+<div class="who"><img src="{photo_uri()}" alt="foto"><div><b>Adelia Mutiara</b><span>NPM 51230004</span></div></div>
+</div><div><div class="frame"><img src="{banner_uri()}" alt="banner">
+<div class="float f1">🔗 Apriori</div><div class="float f2">🎯 K-Means</div><div class="float f3">📊 Dashboard BI</div></div></div></div>""", unsafe_allow_html=True)
+
+    st.markdown('<div class="drop-h"><b>⬆️ Mulai dari sini: unggah file Excel UTS</b><span>Format .xlsx / .xls · hanya sheet Data_Raw yang dibaca, sheet lain diabaikan</span></div>', unsafe_allow_html=True)
+    f = st.file_uploader('Seret file ke sini atau klik Browse', type=['xlsx', 'xls'], key='main_up', label_visibility='collapsed')
+    handle_upload(f)
+
+    st.markdown("""<div class="stepsrow">
+<div class="stepc"><div class="no">1</div><div class="ic" style="background:linear-gradient(135deg,#3d74c9,#5aa9e6);color:#fff">📥</div><b>Unggah data</b><span>Pilih file Excel berisi sheet Data_Raw, audit kualitas data langsung berjalan.</span></div>
+<div class="stepc"><div class="no">2</div><div class="ic" style="background:linear-gradient(135deg,#7b8cf0,#a5b4fa);color:#fff">⚙️</div><b>Jalankan tiap tahap</b><span>Preprocessing, Apriori, dan K-Means dengan satu klik per tahap.</span></div>
+<div class="stepc"><div class="no">3</div><div class="ic" style="background:linear-gradient(135deg,#4cb8d8,#7fd3e8);color:#fff">🎯</div><b>Baca rekomendasi</b><span>Dashboard interaktif dan 3 rekomendasi prioritas siap dipresentasikan.</span></div></div>
+<div class="feat">
+<div class="fc"><div class="top"><span class="e">🔍</span><span class="w">10%</span></div><b>Business Understanding &amp; EDA</b><span>Pertanyaan bisnis, profil data, dan audit kualitas.</span></div>
+<div class="fc"><div class="top"><span class="e">🧹</span><span class="w">25%</span></div><b>Data Preprocessing</b><span>Missing, duplikat, teks tidak konsisten, dan outlier.</span></div>
+<div class="fc"><div class="top"><span class="e">🔗</span><span class="w">20%</span></div><b>Apriori / Market Basket</b><span>Support, confidence, lift, dan network graph aturan.</span></div>
+<div class="fc"><div class="top"><span class="e">🎯</span><span class="w">20%</span></div><b>K-Means Segmentasi</b><span>RFM, Elbow, Silhouette, dan strategi per segmen.</span></div>
+<div class="fc"><div class="top"><span class="e">📊</span><span class="w">15%</span></div><b>Dashboard BI</b><span>KPI, tren bulanan, top produk, dan filter interaktif.</span></div>
+<div class="fc"><div class="top"><span class="e">💡</span><span class="w">10%</span></div><b>Rekomendasi Keputusan</b><span>Bukti, KPI, estimasi biaya/manfaat, dan cara evaluasi.</span></div></div>""", unsafe_allow_html=True)
 
 
 def page_eda():
@@ -1621,6 +1725,17 @@ PAGES = [('eda', '1. Business & EDA', page_eda, lambda: S['audit'].get('success'
          ('files', 'Berkas Dikumpulkan', page_files, lambda: False)]
 
 
+def handle_upload(f):
+    if f is not None:
+        sig = (f.name, f.size)
+        if S['file_sig'] != sig:
+            S['file_sig'] = sig
+            with st.spinner('Membaca Data_Raw...'):
+                load_file(f)
+            if S['raw'] is not None:
+                st.rerun()
+
+
 def main():
     if not S['logged_in']:
         login_page()
@@ -1633,13 +1748,8 @@ def main():
                     f'<span style="font-size:10px;color:#a9c8f2">NPM: 51230004</span></div></div>', unsafe_allow_html=True)
         with st.expander('📷 Ganti foto'):
             photo_uploader('Unggah foto', 'photo_side')
-        f = st.file_uploader('Unggah Excel (sheet Data_Raw)', type=['xlsx', 'xls'])
-        if f is not None:
-            sig = (f.name, f.size)
-            if S['file_sig'] != sig:
-                S['file_sig'] = sig
-                with st.spinner('Membaca Data_Raw...'):
-                    load_file(f)
+        st.markdown('<div class="up-title">⬆️ UNGGAH DATA EXCEL</div>', unsafe_allow_html=True)
+        handle_upload(st.file_uploader('Sheet Data_Raw (.xlsx / .xls)', type=['xlsx', 'xls'], key='side_up'))
         if S['raw'] is not None:
             st.caption(f"{S['raw_name']} · {fi(len(S['raw']))} baris")
             labels = {k: (('✅ ' if done() else '') + lbl.strip()) for k, lbl, _, done in PAGES}
